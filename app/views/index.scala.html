@@ -1,0 +1,64 @@
+@main("Welcome to Play") {
+<style>
+.hide {
+    display: none;
+}
+</style>
+<div id="page-wrapper">
+    <div id="status">Connecting...</div>
+    <form id="username-form" action="#">
+        <input id="username" type="text" required>
+    <button id="enterButton" type="submit">Enter</button>
+    </form>
+
+    <ul id="messages"></ul>
+
+    <form class="hide" id="message-form" action="#" method="post">
+        <input id="message" required>
+        <button id="sendButton" type="submit">Send</button>
+    </form>
+</div>
+
+<script>
+window.onload = function() {
+    var ws = new WebSocket($("body").data("ws-url"));
+    var username;
+
+    ws.onerror = function(error) {
+        console.log('WebSocket Error: ' + error);
+    };
+
+    ws.onopen = function(event) {
+        $('#status').text('Connected to WebSocket');
+    };
+
+    ws.onmessage = function(event) {
+        var message = event.data;
+        $('#messages').append('<li class="received"><span>Received:</span>' + message + '</li>');
+    };
+
+    ws.onclose = function(event) {
+        $('#status').text('Disconnected from WebSocket.');
+    };
+
+    $('#enterButton').click(function(e) {
+        $('#username-form').addClass('hide');
+        $('#message-form').removeClass('hide');
+        e.preventDefault();
+        username = $('#username').val();
+        console.log(username);
+        ws.send(JSON.stringify({type: 'join', username: username}));
+        $('#username').val('');
+        return false;
+    });
+
+    $('#sendButton').click(function(e) {
+        e.preventDefault();
+        var message = $('#message').val();
+        ws.send(JSON.stringify({type: "talk", username: username, chatMessage: message}));
+        $('#message').val('');
+        return false;
+    });
+};
+</script>
+}
